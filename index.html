@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LET`S CHAT</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+</head>
+<body>
+<h1>Chat Room</h1>
+<input id="sendTxt" type="text"/>
+<button id="sendBtn">发送</button>
+<script type="text/javascript">
+    var socket = new io("ws://localhost:3000/");
+    function showMessage(str,type){
+        var div = document.createElement('div');
+        div.innerHTML = str;
+        if(type =="enter"){
+            div.style.color = "blue";
+        }else if(type =="leave"){
+            div.style.color = "red";
+        }
+        document.body.appendChild(div)
+    }
+    //点击发送信息
+    document.getElementById("sendBtn").onclick = function () {
+        var txt = document.getElementById("sendTxt").value;
+        if (txt){
+            socket.emit('message',txt);
+        }
+    }
+    //监听用户进入
+    socket.on('enter',function(data){
+        showMessage(data,'enter')
+    })
+    //监听接收信息
+    socket.on('message',function(data){
+        showMessage(data,'message')
+    })
+    //监听用户离开
+    socket.on('leave',function(data){
+        showMessage(data,'leave')
+    })
+
+</script>
+</body>
+</html>
