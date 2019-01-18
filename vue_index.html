@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <!-- import CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="./dist/element-ui/lib/theme-chalk/index.css">
     <style>
         body{
             margin: 0;
@@ -35,19 +35,28 @@
             border-radius: 10px;
             margin-bottom: 10px;
         }
-        #sendTxt,#chatArea{
+        #sendTxt,#chatArea span{
             font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",Arial,sans-serif;
         }
         .el-textarea{
             width: 80%;
         }
         #example-2{
-            height: 87%;
+            height: 86%;
             overflow-y: auto;
         }
         #example-2>li{
             margin: 10px;
             list-style: none;
+        }
+        .cls_enter{
+            color: #67C23A;
+        }
+        li:has(> span.cls_enter){
+            color:red;
+        }
+        .cls_leave{
+            color: #F56C6C;
         }
     </style>
 </head>
@@ -64,18 +73,16 @@
             <el-main>
                 <div id="chatArea">
                     <ul id="example-2" v-chat-scroll="{always: false, smooth: true, scrollonremoved:true}">
-                        <li v-for="chat of chatList">
+                        <li v-for="chat of chatList" >
                             <span v-if="chat.type == 'message'">
                                 {{ chat.user }} : {{ chat.msg }}
                             </span>
-                            <span v-else-if="chat.type == 'enter'">
+                            <span v-else-if="chat.type == 'enter'" class="cls_enter">
                                 {{ chat.user }} - comes in
                             </span>
-                            <span v-else-if="chat.type == 'leave'">
-                                {{ chat.user }} : left
+                            <span v-else-if="chat.type == 'leave'" class="cls_leave">
+                                {{ chat.user }} - left
                             </span>
-
-
 
                         </li>
                     </ul>
@@ -90,7 +97,7 @@
                             placeholder="请输入内容"
                             v-model="typeIn">{{typeIn}}
                     </el-input>
-                    <el-button type="primary" @click="sendMsg" size="medium" icon="el-icon-check" circle></el-button>
+                    <el-button type="primary" @click="sendMsg" plain>点击发送</el-button>
                 </el-row>
             </el-main>
         </el-container>
@@ -98,12 +105,12 @@
 </div>
 </body>
 <!-- import Vue before Element -->
-<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<script src="./dist/vue.js"></script>
 <script src="./dist/vue-chat-scroll.js"></script>
 
 <!-- import JavaScript -->
-<script src="https://unpkg.com/element-ui/lib/index.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+<script src="./dist/element-ui/lib/index.js"></script>
+<script src="./dist/socket.io/2.0.3/socket.io.js"></script>
 <script>
 
     var vue = new Vue({
