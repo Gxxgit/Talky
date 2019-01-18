@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <style>
+        body{
+            margin: 0;
+            padding: 0;
+        }
+        #whole{
+            width: 900px;
+            height: 600px;
+            margin: 0 auto;
+            margin-top: 30px;
+            border: 1px solid #DCDFE6;
+            border-radius: 10px;
+        }
+        h1{
+            color: #409EFF;
+        }
+        .el-aside{
+            border: 0.5px solid #E4E7ED;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            margin-left: 20px;
+            margin-bottom: 20px;
+        }
+        #chatArea{
+            width: 80%;
+            height: 390px;
+            border: 1px solid #DCDFE6;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        #sendTxt,#chatArea{
+            font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",Arial,sans-serif;
+        }
+        .el-textarea{
+            width: 80%;
+        }
+        #example-2{
+            height: 87%;
+            overflow-y: auto;
+        }
+        #example-2>li{
+            margin: 10px;
+            list-style: none;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <el-container id="whole">
+        <el-header>
+            <h1>Ga Chat Room</h1>
+        </el-header>
+        <el-container>
+            <el-aside width="200px" v-model="typeIn">
+                {{typeIn}}
+            </el-aside>
+            <el-main>
+                <div id="chatArea">
+                    <ul id="example-2" v-chat-scroll="{always: false, smooth: true, scrollonremoved:true}">
+                        <li v-for="chat of chatList">
+                            <span v-if="chat.type == 'message'">
+                                {{ chat.user }} : {{ chat.msg }}
+                            </span>
+                            <span v-else-if="chat.type == 'enter'">
+                                {{ chat.user }} - comes in
+                            </span>
+                            <span v-else-if="chat.type == 'leave'">
+                                {{ chat.user }} : left
+                            </span>
+
+
+
+                        </li>
+                    </ul>
+                </div>
+                <el-row>
+                    <el-input
+                            id="sendTxt"
+                            autofocus
+                            @keyup.enter.native="sendMsg"
+                            type="textarea"
+                            :autosize="{ minRows: 4, maxRows: 4}"
+                            placeholder="请输入内容"
+                            v-model="typeIn">{{typeIn}}
+                    </el-input>
+                    <el-button type="primary" @click="sendMsg" size="medium" icon="el-icon-check" circle></el-button>
+                </el-row>
+            </el-main>
+        </el-container>
+    </el-container>
+</div>
+</body>
+<!-- import Vue before Element -->
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<script src="./dist/vue-chat-scroll.js"></script>
+
+<!-- import JavaScript -->
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+<script>
+
+    var vue = new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                typeIn:'' ,
+                chatList:[],
+                firstTime:0,
+                myID:''
+            }
+        },
+        /**
+         *  初始化时候，此处为“created”
+         *  并且引用methods下函数时候，需要带“this”关键字
+         *  引用data中的变量时候，也需要带“this”关键字
+         *  gxx
+         *  2019/01/17
+         */
+
+        created:function(){
+            this.initSocket();
+        },
+        methods:{
+            /**
+             *  点击确定，发送信息
+             *  gxx
+             *  2019/01/17
+             */
+            sendMsg:function () {
+                if(this.typeIn){
+                    this.socket.emit('message',this.typeIn);
+                    this.typeIn = ""
+                }
+            },
+            /**
+             *  socket初始化
+             *  gxx
+             *  2019/01/17
+             */
+            initSocket:function () {
+                this.socket = new io("ws://localhost:3000/");
+
+                //监听用户进入
+                this.socket.on('enter',function(data){
+                    if (vue.firstTime ==0) {
+                        vue.myID = data.id;
+                        vue.firstTime = 1
+                    }
+                    console.log(data)
+                    vue.chatList.push(data)
+                });
+                //监听接收信息
+                this.socket.on('message',function(data){
+                    console.log(data)
+                    vue.chatList.push(data)
+                });
+                //监听用户离开
+                this.socket.on('leave',function(data){
+                    console.log(data)
+                    vue.chatList.push(data)
+                })
+            }
+        }
+    })
+</script>
+</html>
