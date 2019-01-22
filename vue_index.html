@@ -49,13 +49,28 @@
             margin: 10px;
             list-style: none;
         }
-        .cls_enter{
+        #example-2>li>span{
+            display: block;
+        }
+        .msg_str{
+            font-size: 18px;
+        }
+        .msg_mine{
+            margin-right: 40px;
+            text-align: right;
+        }
+        .msg_info{
+            text-align: center;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            font-size: 15px;
+            font-style: italic;
+        }
+        .msg_enter{
             color: #67C23A;
         }
-        li:has(> span.cls_enter){
-            color:red;
-        }
-        .cls_leave{
+
+        .msg_leave{
             color: #F56C6C;
         }
     </style>
@@ -68,19 +83,27 @@
         </el-header>
         <el-container>
             <el-aside width="200px" v-model="typeIn">
-                {{typeIn}}
+                <div>Still Online [ {{onlineList.length}} 人]</div>
+                <ul>
+                    <li v-for="name of onlineList">
+                        {{name}}
+                    </li>
+                </ul>
             </el-aside>
             <el-main>
                 <div id="chatArea">
                     <ul id="example-2" v-chat-scroll="{always: false, smooth: true, scrollonremoved:true}">
                         <li v-for="chat of chatList" >
-                            <span v-if="chat.type == 'message'">
+                            <span v-if="chat.type == 'message' && chat.id == myID" class="msg_mine msg_str">
+                                me : {{ chat.msg }}
+                            </span>
+                            <span v-else-if="chat.type == 'message' && chat.id != myID" class="msg_str">
                                 {{ chat.user }} : {{ chat.msg }}
                             </span>
-                            <span v-else-if="chat.type == 'enter'" class="cls_enter">
+                            <span v-else-if="chat.type == 'enter'" class="msg_enter msg_info">
                                 {{ chat.user }} - comes in
                             </span>
-                            <span v-else-if="chat.type == 'leave'" class="cls_leave">
+                            <span v-else-if="chat.type == 'leave'" class="msg_leave msg_info">
                                 {{ chat.user }} - left
                             </span>
 
@@ -120,7 +143,8 @@
                 typeIn:'' ,
                 chatList:[],
                 firstTime:0,
-                myID:''
+                myID:'',
+                onlineList:[]
             }
         },
         /**
@@ -160,6 +184,7 @@
                         vue.myID = data.id;
                         vue.firstTime = 1
                     }
+                    vue.onlineList = data.list
                     console.log(data)
                     vue.chatList.push(data)
                 });
@@ -170,6 +195,7 @@
                 });
                 //监听用户离开
                 this.socket.on('leave',function(data){
+                    vue.onlineList = data.list
                     console.log(data)
                     vue.chatList.push(data)
                 })

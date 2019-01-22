@@ -5,16 +5,20 @@ var PORT = 3000
 
 var clientCount = 0
 
+var onlineList = []
+
 app.listen(PORT)
 
 io.on('connection',function (socket) {
     clientCount++;
     socket.nickname = "User" + clientCount;
+    onlineList.push(socket.nickname)
     io.emit('enter',{
         user:socket.nickname ,
         msg:" comes in",
         id:socket.id,
-        type:'enter'
+        type:'enter',
+        list:onlineList
     });
 
     socket.on('message',function (str) {
@@ -27,13 +31,30 @@ io.on('connection',function (socket) {
     });
 
     socket.on('disconnect',function () {
+        remove_onlineList(onlineList,socket.nickname);
         io.emit('leave',{
             user:socket.nickname ,
             msg:" left",
             id:socket.id,
-            type:'leave'
+            type:'leave',
+            list:onlineList
         })
     })
 })
+
+/**
+ *  删除离开的用户
+ * @param nameList 在线用户列表
+ * @param someone 待删除的用户昵称
+ * @author gxx
+ * @time 2019/01/22 17：50
+ */
+function remove_onlineList(nameList, someone){
+
+    var index = nameList.indexOf(someone);
+    if (index > -1) {
+        nameList.splice(index, 1);
+    }
+}
 
 console.log("websocket server listening on port" + PORT)
