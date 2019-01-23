@@ -30,6 +30,15 @@ io.on('connection',function (socket) {
         })
     });
 
+    socket.on('rename',function (str) {
+        changeName(onlineList,str,socket.nickname);
+        socket.nickname = str;
+        io.emit('rename',{
+            user:socket.nickname ,
+            list:onlineList
+        })
+    });
+
     socket.on('disconnect',function () {
         remove_onlineList(onlineList,socket.nickname);
         io.emit('leave',{
@@ -54,6 +63,13 @@ function remove_onlineList(nameList, someone){
     var index = nameList.indexOf(someone);
     if (index > -1) {
         nameList.splice(index, 1);
+    }
+}
+
+function changeName(nameList,newName,oldName){
+    var index = nameList.indexOf(oldName);
+    if (index > -1) {
+        nameList.splice(index, 1, newName);
     }
 }
 
