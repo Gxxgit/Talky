@@ -131,6 +131,7 @@
                             autofocus
                             @keyup.enter.native="sendMsg"
                             type="textarea"
+                            resize="none"
                             :autosize="{ minRows: 4, maxRows: 4}"
                             placeholder="请输入内容"
                             v-model="typeIn">{{typeIn}}
@@ -162,7 +163,8 @@
                 onlineList:[],  //在线用户列表
                 nickname:'',    //当前的昵称
                 dialogVisible: false,   //修改昵称对话框可见性
-                bool_setName:true   //是否可以修改昵称
+                bool_setName:true,   //是否可以修改昵称
+                isFocus:true
             }
         },
         /**
@@ -175,6 +177,7 @@
 
         created:function(){
             this.initSocket();
+            this.checkFocus();
         },
         methods:{
             /**
@@ -215,6 +218,9 @@
                     vue.onlineList = data.list
                     console.log(data)
                     vue.chatList.push(data)
+                    if(vue.isFocus == false){
+                        vue.sendNotice(data.user,data.user+' '+data.msg);
+                    }
                 });
 
                 this.socket.on('rename',function (data) {
@@ -224,12 +230,18 @@
                 this.socket.on('message',function(data){
                     console.log(data)
                     vue.chatList.push(data)
+                    if(vue.isFocus == false){
+                        vue.sendNotice(data.user,data.msg);
+                    }
                 });
                 //监听用户离开
                 this.socket.on('leave',function(data){
                     vue.onlineList = data.list
                     console.log(data)
                     vue.chatList.push(data)
+                    if(vue.isFocus == false){
+                        vue.sendNotice(data.user,data.user+' '+data.msg);
+                    }
                 })
             },
             /**
@@ -243,6 +255,51 @@
                     done();
             })
             .catch(_ => {});
+            },
+            /**
+             *  检测窗口是否激活，并以此判断是否发送提醒消息
+             *  gxx
+             *  2019/01/25
+             */
+            checkFocus:function () {
+                window.onfocus = function () {
+                    vue.isFocus = true
+                };
+                window.onblur = function () {
+                    vue.isFocus = false
+                };
+            },
+            /**
+             *  发送提醒消息
+             *  gxx
+             *  2019/01/25
+             */
+            sendNotice:function (title, body) {
+                if (window.Notification) {
+                    let popNotice = function() {
+                        if (Notification.permission == "granted") {
+                            let notification = new Notification(title, {
+                                body: body,
+                                icon: '//image.zhangxinxu.com/image/study/s/s128/mm1.jpg'
+                            });
+                            setTimeout(function () {
+                                notification.close()
+                            },5000);
+                            notification.onclick = function() {
+                                notification.close();
+                            };
+                        }
+                    };
+                    if (Notification.permission == "granted") {
+                        popNotice();
+                    } else if (Notification.permission != "denied") {
+                        Notification.requestPermission(function (permission) {
+                            popNotice();
+                        });
+                    }
+                }else {
+                    alert('浏览器不支持Notification');
+                }
             }
         }
     })
